@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f13" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Suzy</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="avatar-small" id="avatar-small">S</div>
+      <div class="header-info">
+        <h1>Suzy</h1>
+        <span class="status" id="status">Ready</span>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+    </header>
+
+    <section class="avatar-area" id="avatar-area">
+      <div class="avatar-placeholder" id="avatar">
+        <div class="avatar-face">😊</div>
+        <div class="avatar-name">Suzy</div>
+      </div>
+    </section>
+
+    <main class="chat" id="chat">
+      <div class="messages" id="messages"></div>
+    </main>
+
+    <footer class="input-bar">
+      <button id="mic-btn" class="mic-btn" title="Tap to talk">🎙️</button>
+      <input type="text" id="text-input" placeholder="Message Suzy..." autocomplete="off" />
+      <button id="send-btn" class="send-btn">Send</button>
+    </footer>
+  </div>
+
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      <label>OpenRouter API Key</label>
+      <input type="password" id="api-key-input" placeholder="sk-or-v1-..." />
+      <p class="hint">Stored only in this browser. Never uploaded.</p>
+
+      <label>Model (free preferred)</label>
+      <select id="model-select">
+        <option value="openrouter/free">openrouter/free (auto free)</option>
+        <option value="cognitivecomputations/dolphin-mistral-24b-venice-edition:free">Venice Uncensored (free)</option>
+        <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (free)</option>
+        <option value="google/gemma-4-31b-it:free">Gemma 4 31B (free)</option>
+      </select>
+
+      <label>Voice</label>
+      <select id="voice-select"></select>
+
+      <div class="modal-actions">
+        <button id="save-settings">Save</button>
+        <button id="close-settings" class="secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
