@@ -57,12 +57,19 @@
         <option value="google/gemma-4-31b-it:free">Gemma 4 31B (free)</option>
         <option value="cognitivecomputations/dolphin-mistral-24b-venice-edition">Venice Uncensored (paid)</option>
       </select>
-      <p class="hint">Venice free version is no longer available. Use the paid slug or stick to free models.</p>
 
       <label>Voice</label>
       <select id="voice-select"></select>
+      <p class="hint">Voices come from your device/browser. More voices appear on desktop Chrome/Edge.</p>
+
+      <label>Speech Rate <span id="rate-value">1.0</span></label>
+      <input type="range" id="rate-slider" min="0.7" max="1.4" step="0.05" value="1.0" />
+
+      <label>Pitch <span id="pitch-value">1.05</span></label>
+      <input type="range" id="pitch-slider" min="0.8" max="1.4" step="0.05" value="1.05" />
 
       <div class="modal-actions">
+        <button id="test-voice" class="secondary">Test Voice</button>
         <button id="save-settings">Save</button>
         <button id="close-settings" class="secondary">Close</button>
       </div>
