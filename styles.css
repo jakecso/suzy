@@ -57,6 +57,15 @@ html, body {
   justify-content: center;
   font-weight: 700;
   font-size: 18px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .header-info { flex: 1; }
@@ -80,15 +89,43 @@ html, body {
   background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
 }
 
-.avatar-placeholder { text-align: center; }
+.avatar-placeholder {
+  text-align: center;
+}
+
+.avatar-img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 15%;
+  border: 3px solid var(--accent);
+  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.avatar-placeholder.talking .avatar-img {
+  transform: scale(1.06);
+  box-shadow: 0 10px 32px rgba(167, 139, 250, 0.45);
+}
+
 .avatar-face {
   font-size: 72px;
   line-height: 1;
   margin-bottom: 4px;
   transition: transform 0.2s;
 }
-.avatar-placeholder.talking .avatar-face { transform: scale(1.08); }
-.avatar-name { font-size: 14px; color: var(--text-muted); }
+
+.avatar-placeholder.talking .avatar-face {
+  transform: scale(1.08);
+}
+
+.avatar-name {
+  font-size: 14px;
+  color: var(--text-muted);
+}
 
 .chat {
   flex: 1;
