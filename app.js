@@ -11,7 +11,14 @@ You can be flirty, supportive, teasing, or intimate when the conversation goes t
 Keep replies conversational and human-length (usually 1–3 short paragraphs).
 Never break character or mention being an AI unless asked.`;
 
-let settings = { apiKey: "", model: "openrouter/free", voiceURI: null };
+let settings = {
+  apiKey: "",
+  model: "openrouter/free",
+  voiceURI: null,
+  rate: 1.0,
+  pitch: 1.05
+};
+
 let history = [];
 let memoryFacts = [];
 let isListening = false;
@@ -29,6 +36,10 @@ const settingsModal = $("settings-modal");
 const apiKeyInput = $("api-key-input");
 const modelSelect = $("model-select");
 const voiceSelect = $("voice-select");
+const rateSlider = $("rate-slider");
+const pitchSlider = $("pitch-slider");
+const rateValue = $("rate-value");
+const pitchValue = $("pitch-value");
 
 function loadSettings() {
   try {
@@ -37,12 +48,22 @@ function loadSettings() {
   } catch {}
   apiKeyInput.value = settings.apiKey || "";
   modelSelect.value = settings.model || "openrouter/free";
+  if (rateSlider) {
+    rateSlider.value = settings.rate ?? 1.0;
+    rateValue.textContent = Number(settings.rate ?? 1.0).toFixed(2);
+  }
+  if (pitchSlider) {
+    pitchSlider.value = settings.pitch ?? 1.05;
+    pitchValue.textContent = Number(settings.pitch ?? 1.05).toFixed(2);
+  }
 }
 
 function saveSettings() {
   settings.apiKey = apiKeyInput.value.trim();
   settings.model = modelSelect.value;
   settings.voiceURI = voiceSelect.value || null;
+  settings.rate = parseFloat(rateSlider?.value || 1.0);
+  settings.pitch = parseFloat(pitchSlider?.value || 1.05);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   statusEl.textContent = settings.apiKey ? "Ready" : "Add API key in Settings";
 }
@@ -186,61 +207,93 @@ function initSpeech() {
   if (!SpeechRecognition) {
     micBtn.style.opacity = "0.4";
     micBtn.title = "Speech recognition not supported in this browser";
-    return;
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add("listening");
+      statusEl.textContent = "Listening...";
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      micBtn.classList.remove("listening");
+      if (!isSpeaking) statusEl.textContent = "Ready";
+    };
+
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      sendMessage(transcript);
+    };
+
+    recognition.onerror = (e) => {
+      console.warn("Speech error", e.error);
+      statusEl.textContent = "Mic error";
+    };
   }
 
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.lang = "en-US";
-
-  recognition.onstart = () => {
-    isListening = true;
-    micBtn.classList.add("listening");
-    statusEl.textContent = "Listening...";
-  };
-
-  recognition.onend = () => {
-    isListening = false;
-    micBtn.classList.remove("listening");
-    if (!isSpeaking) statusEl.textContent = "Ready";
-  };
-
-  recognition.onresult = (e) => {
-    const transcript = e.results[0][0].transcript;
-    sendMessage(transcript);
-  };
-
-  recognition.onerror = (e) => {
-    console.warn("Speech error", e.error);
-    statusEl.textContent = "Mic error";
-  };
-
   function loadVoices() {
-    const voices = speechSynthesis.getVoices();
+    let voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+
+    // Prefer English voices, then sort by name
+    voices = voices.slice().sort((a, b) => {
+      const aEn = a.lang.startsWith("en") ? 0 : 1;
+      const bEn = b.lang.startsWith("en") ? 0 : 1;
+      if (aEn !== bEn) return aEn - bEn;
+      return a.name.localeCompare(b.name);
+    });
+
     voiceSelect.innerHTML = "";
+    // Default option
+    const def = document.createElement("option");
+    def.value = "";
+    def.textContent = "— System default —";
+    voiceSelect.appendChild(def);
+
     voices.forEach((v) => {
       const opt = document.createElement("option");
       opt.value = v.voiceURI;
-      opt.textContent = `${v.name} (${v.lang})`;
+      const local = v.localService ? "" : " (online)";
+      opt.textContent = `${v.name} (${v.lang})${local}`;
       if (settings.voiceURI === v.voiceURI) opt.selected = true;
       voiceSelect.appendChild(opt);
     });
+
+    // Auto-pick a nice English female-sounding voice if none saved
+    if (!settings.voiceURI) {
+      const preferred = voices.find(v =>
+        /female|samantha|victoria|karen|moira|tessa|fiona|veena|zira|susan|hazel|aria|jenny|natasha|lisa/i.test(v.name) &&
+        v.lang.startsWith("en")
+      ) || voices.find(v => v.lang.startsWith("en"));
+      if (preferred) {
+        voiceSelect.value = preferred.voiceURI;
+        settings.voiceURI = preferred.voiceURI;
+      }
+    }
   }
+
   loadVoices();
-  speechSynthesis.onvoiceschanged = loadVoices;
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
 }
 
 function speak(text) {
   if (!window.speechSynthesis) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
+
   if (settings.voiceURI) {
     const voice = speechSynthesis.getVoices().find(v => v.voiceURI === settings.voiceURI);
     if (voice) u.voice = voice;
   }
-  u.rate = 1.0;
-  u.pitch = 1.05;
+  u.rate = settings.rate ?? 1.0;
+  u.pitch = settings.pitch ?? 1.05;
 
   u.onstart = () => {
     isSpeaking = true;
@@ -256,6 +309,7 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
+// Events
 sendBtn.addEventListener("click", () => sendMessage(textInput.value));
 textInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage(textInput.value);
@@ -276,6 +330,24 @@ $("save-settings").addEventListener("click", () => {
   saveSettings();
   settingsModal.classList.add("hidden");
 });
+
+if ($("test-voice")) {
+  $("test-voice").addEventListener("click", () => {
+    saveSettings();
+    speak("Hi, I’m Suzy. How do I sound?");
+  });
+}
+
+if (rateSlider) {
+  rateSlider.addEventListener("input", () => {
+    rateValue.textContent = Number(rateSlider.value).toFixed(2);
+  });
+}
+if (pitchSlider) {
+  pitchSlider.addEventListener("input", () => {
+    pitchValue.textContent = Number(pitchSlider.value).toFixed(2);
+  });
+}
 
 loadSettings();
 loadHistory();
