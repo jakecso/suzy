@@ -13,7 +13,9 @@
 <body>
   <div id="app">
     <header class="header">
-      <div class="avatar-small" id="avatar-small">S</div>
+      <div class="avatar-small" id="avatar-small">
+        <img src="suzy.png" alt="Suzy" onerror="this.style.display='none'; this.parentElement.textContent='S';" />
+      </div>
       <div class="header-info">
         <h1>Suzy</h1>
         <span class="status" id="status">Ready</span>
@@ -23,7 +25,9 @@
 
     <section class="avatar-area" id="avatar-area">
       <div class="avatar-placeholder" id="avatar">
-        <div class="avatar-face">😊</div>
+        <img class="avatar-img" src="suzy.png" alt="Suzy" id="avatar-img"
+             onerror="this.style.display='none'; document.getElementById('avatar-fallback').style.display='block';" />
+        <div class="avatar-face" id="avatar-fallback" style="display:none;">😊</div>
         <div class="avatar-name">Suzy</div>
       </div>
     </section>
