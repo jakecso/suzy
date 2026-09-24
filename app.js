@@ -15,8 +15,8 @@ let settings = {
   apiKey: "",
   model: "openrouter/free",
   voiceURI: null,
-  rate: 1.0,
-  pitch: 1.05
+  rate: 0.92,   // slightly slower = more intimate
+  pitch: 1.12   // slightly higher = softer female tone
 };
 
 let history = [];
@@ -49,12 +49,12 @@ function loadSettings() {
   apiKeyInput.value = settings.apiKey || "";
   modelSelect.value = settings.model || "openrouter/free";
   if (rateSlider) {
-    rateSlider.value = settings.rate ?? 1.0;
-    rateValue.textContent = Number(settings.rate ?? 1.0).toFixed(2);
+    rateSlider.value = settings.rate ?? 0.92;
+    rateValue.textContent = Number(settings.rate ?? 0.92).toFixed(2);
   }
   if (pitchSlider) {
-    pitchSlider.value = settings.pitch ?? 1.05;
-    pitchValue.textContent = Number(settings.pitch ?? 1.05).toFixed(2);
+    pitchSlider.value = settings.pitch ?? 1.12;
+    pitchValue.textContent = Number(settings.pitch ?? 1.12).toFixed(2);
   }
 }
 
@@ -62,8 +62,8 @@ function saveSettings() {
   settings.apiKey = apiKeyInput.value.trim();
   settings.model = modelSelect.value;
   settings.voiceURI = voiceSelect.value || null;
-  settings.rate = parseFloat(rateSlider?.value || 1.0);
-  settings.pitch = parseFloat(pitchSlider?.value || 1.05);
+  settings.rate = parseFloat(rateSlider?.value || 0.92);
+  settings.pitch = parseFloat(pitchSlider?.value || 1.12);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   statusEl.textContent = settings.apiKey ? "Ready" : "Add API key in Settings";
 }
@@ -240,7 +240,7 @@ function initSpeech() {
     let voices = speechSynthesis.getVoices();
     if (!voices.length) return;
 
-    // Prefer English voices, then sort by name
+    // Prefer English, then sort
     voices = voices.slice().sort((a, b) => {
       const aEn = a.lang.startsWith("en") ? 0 : 1;
       const bEn = b.lang.startsWith("en") ? 0 : 1;
@@ -249,7 +249,6 @@ function initSpeech() {
     });
 
     voiceSelect.innerHTML = "";
-    // Default option
     const def = document.createElement("option");
     def.value = "";
     def.textContent = "— System default —";
@@ -264,12 +263,23 @@ function initSpeech() {
       voiceSelect.appendChild(opt);
     });
 
-    // Auto-pick a nice English female-sounding voice if none saved
+    // Prefer softer / more sensual-sounding female voices
     if (!settings.voiceURI) {
-      const preferred = voices.find(v =>
-        /female|samantha|victoria|karen|moira|tessa|fiona|veena|zira|susan|hazel|aria|jenny|natasha|lisa/i.test(v.name) &&
-        v.lang.startsWith("en")
-      ) || voices.find(v => v.lang.startsWith("en"));
+      const sensualNames = [
+        /samantha/i, /victoria/i, /karen/i, /moira/i, /tessa/i,
+        /fiona/i, /veena/i, /zira/i, /susan/i, /hazel/i,
+        /aria/i, /jenny/i, /natasha/i, /lisa/i, /allison/i,
+        /ava/i, /emma/i, /joanna/i, /salli/i, /kimberly/i,
+        /female/i, /woman/i
+      ];
+
+      let preferred = null;
+      for (const re of sensualNames) {
+        preferred = voices.find(v => re.test(v.name) && v.lang.startsWith("en"));
+        if (preferred) break;
+      }
+      if (!preferred) preferred = voices.find(v => v.lang.startsWith("en"));
+
       if (preferred) {
         voiceSelect.value = preferred.voiceURI;
         settings.voiceURI = preferred.voiceURI;
@@ -292,8 +302,8 @@ function speak(text) {
     const voice = speechSynthesis.getVoices().find(v => v.voiceURI === settings.voiceURI);
     if (voice) u.voice = voice;
   }
-  u.rate = settings.rate ?? 1.0;
-  u.pitch = settings.pitch ?? 1.05;
+  u.rate = settings.rate ?? 0.92;
+  u.pitch = settings.pitch ?? 1.12;
 
   u.onstart = () => {
     isSpeaking = true;
@@ -334,7 +344,7 @@ $("save-settings").addEventListener("click", () => {
 if ($("test-voice")) {
   $("test-voice").addEventListener("click", () => {
     saveSettings();
-    speak("Hi, I’m Suzy. How do I sound?");
+    speak("Hey… it’s Suzy. Does this sound better?");
   });
 }
 
