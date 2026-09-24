@@ -50,13 +50,14 @@
       <input type="password" id="api-key-input" placeholder="sk-or-v1-..." />
       <p class="hint">Stored only in this browser. Never uploaded.</p>
 
-      <label>Model (free preferred)</label>
+      <label>Model</label>
       <select id="model-select">
-        <option value="openrouter/free">openrouter/free (auto free)</option>
-        <option value="cognitivecomputations/dolphin-mistral-24b-venice-edition:free">Venice Uncensored (free)</option>
+        <option value="openrouter/free">openrouter/free (auto free models)</option>
         <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (free)</option>
         <option value="google/gemma-4-31b-it:free">Gemma 4 31B (free)</option>
+        <option value="cognitivecomputations/dolphin-mistral-24b-venice-edition">Venice Uncensored (paid)</option>
       </select>
+      <p class="hint">Venice free version is no longer available. Use the paid slug or stick to free models.</p>
 
       <label>Voice</label>
       <select id="voice-select"></select>
